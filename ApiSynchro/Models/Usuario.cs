@@ -1,0 +1,62 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ApiSynchro.Models
+{
+    [Table("Usuario")]
+    public class Usuario
+    {
+        [Key]
+        public int IdUsuario { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(250)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(250)]
+        public string Contrasena { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime FechaNacimiento { get; set; }
+
+        [MaxLength(150)]
+        public string? Ciudad { get; set; }
+
+        public int? IntencionBusqueda { get; set; }
+
+        [MaxLength(20)]
+        public string? Genero { get; set; }
+
+        [ForeignKey("IntencionBusqueda")]
+        public virtual IntencionBusqueda? IntencionBusquedaNavigation { get; set; }
+
+        [MaxLength(500)]
+        public string? FotoPerfil { get; set; }
+
+        [MaxLength(5)]
+        public string? IdiomaPreferido { get; set; }
+
+        [MaxLength(10)]
+        public string? TemaPreferido { get; set; }
+
+        [MaxLength(500)]
+        public string? BioAI { get; set; }
+
+        [MaxLength(500)]
+        public string? EmbeddingPerfil { get; set; }
+
+        public bool Estado { get; set; } = true;
+
+        public virtual ICollection<Sesion> Sesiones { get; set; } = new List<Sesion>();
+        public virtual ICollection<RespuestaEncuesta> Respuestas { get; set; } = new List<RespuestaEncuesta>();
+        public virtual ICollection<Match> MatchesComoUsuario1 { get; set; } = new List<Match>();
+        public virtual ICollection<Match> MatchesComoUsuario2 { get; set; } = new List<Match>();
+        public virtual ICollection<Mensaje> MensajesEnviados { get; set; } = new List<Mensaje>();
+        public virtual ICollection<Mensaje> MensajesRecibidos { get; set; } = new List<Mensaje>();
+    }
+}

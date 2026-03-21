@@ -1,0 +1,344 @@
+# ============================================
+# EJEMPLOS DE REQUESTS HTTP PARA API SYNCHRO
+# ============================================
+# Puedes usar estos ejemplos con REST Client (VS Code), Postman o cURL
+
+### Variables
+@baseUrl = https://localhost:7xxx
+@token = tu_token_aqui
+
+# ============================================
+# USUARIOS
+# ============================================
+
+### 1. Registrar Usuario
+POST {{baseUrl}}/api/usuarios/registro
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@example.com",
+  "contrasena": "Password123!",
+  "fechaNacimiento": "1995-05-15",
+  "ciudad": "Madrid",
+  "intencionBusqueda": 1,
+  "genero": "Masculino",
+  "idiomaPreferido": "es"
+}
+
+### 2. Registrar Segundo Usuario (para pruebas de match)
+POST {{baseUrl}}/api/usuarios/registro
+Content-Type: application/json
+
+{
+  "nombre": "María García",
+  "email": "maria@example.com",
+  "contrasena": "Password123!",
+  "fechaNacimiento": "1997-08-20",
+  "ciudad": "Barcelona",
+  "intencionBusqueda": 1,
+  "genero": "Femenino",
+  "idiomaPreferido": "es"
+}
+
+### 3. Login Usuario
+POST {{baseUrl}}/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "juan@example.com",
+  "contrasena": "Password123!"
+}
+
+### 4. Obtener Usuario por ID
+GET {{baseUrl}}/api/usuarios/1
+
+### 5. Obtener Todos los Usuarios
+GET {{baseUrl}}/api/usuarios
+
+### 6. Actualizar Usuario
+PUT {{baseUrl}}/api/usuarios/1
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez Actualizado",
+  "ciudad": "Valencia",
+  "fotoPerfil": "https://example.com/foto.jpg",
+  "bioAI": "Persona extrovertida que disfruta de actividades al aire libre",
+  "temaPreferido": "dark"
+}
+
+### 7. Eliminar Usuario (Soft Delete)
+DELETE {{baseUrl}}/api/usuarios/1
+
+### 8. Logout
+POST {{baseUrl}}/api/usuarios/logout
+Authorization: {{token}}
+
+# ============================================
+# ENCUESTAS
+# ============================================
+
+### 9. Crear Pregunta de Encuesta
+POST {{baseUrl}}/api/encuestas/preguntas
+Content-Type: application/json
+
+{
+  "textoPregunta": "¿Cuál es tu hobby favorito?",
+  "textoPreguntaEN": "What is your favorite hobby?",
+  "icono": "🎨",
+  "orden": 1
+}
+
+### 10. Crear Más Preguntas
+POST {{baseUrl}}/api/encuestas/preguntas
+Content-Type: application/json
+
+{
+  "textoPregunta": "¿Qué tipo de música prefieres?",
+  "textoPreguntaEN": "What type of music do you prefer?",
+  "icono": "🎵",
+  "orden": 2
+}
+
+### 11. Crear Tercera Pregunta
+POST {{baseUrl}}/api/encuestas/preguntas
+Content-Type: application/json
+
+{
+  "textoPregunta": "¿Qué buscas en una relación?",
+  "textoPreguntaEN": "What are you looking for in a relationship?",
+  "icono": "❤️",
+  "orden": 3
+}
+
+### 12. Obtener Todas las Preguntas
+GET {{baseUrl}}/api/encuestas/preguntas
+
+### 13. Guardar Respuestas de Usuario
+POST {{baseUrl}}/api/encuestas/respuestas?idUsuario=1
+Content-Type: application/json
+
+{
+  "respuestas": [
+    {
+      "idPregunta": 1,
+      "respuestaTexto": "Me encanta la fotografía y el senderismo"
+    },
+    {
+      "idPregunta": 2,
+      "respuestaTexto": "Rock alternativo y música electrónica"
+    },
+    {
+      "idPregunta": 3,
+      "respuestaTexto": "Una conexión genuina basada en intereses comunes"
+    }
+  ]
+}
+
+### 14. Obtener Respuestas de Usuario
+GET {{baseUrl}}/api/encuestas/respuestas/usuario/1
+
+# ============================================
+# MATCHES
+# ============================================
+
+### 15. Crear Match
+POST {{baseUrl}}/api/matches?idUsuario1=1
+Content-Type: application/json
+
+{
+  "idUsuario2": 2,
+  "compatibilidad": 87.5,
+  "explicacionAfinidad": "Ambos comparten interés en actividades al aire libre y tienen gustos musicales similares",
+  "sugerenciaIA": "Podrían planear una excursión fotográfica juntos o asistir a un concierto"
+}
+
+### 16. Crear Segundo Match
+POST {{baseUrl}}/api/matches?idUsuario1=1
+Content-Type: application/json
+
+{
+  "idUsuario2": 3,
+  "compatibilidad": 92.0,
+  "explicacionAfinidad": "Alta compatibilidad en valores y objetivos de vida",
+  "sugerenciaIA": "Tienen muchos temas en común para conversar"
+}
+
+### 17. Obtener Matches de Usuario
+GET {{baseUrl}}/api/matches/usuario/1
+
+### 18. Obtener Match por ID
+GET {{baseUrl}}/api/matches/1
+
+### 19. Actualizar Match
+PUT {{baseUrl}}/api/matches/1
+Content-Type: application/json
+
+{
+  "compatibilidad": 90.0,
+  "explicacionAfinidad": "La compatibilidad ha aumentado después de más interacciones",
+  "sugerenciaIA": "Es un buen momento para profundizar la conversación",
+  "estado": true
+}
+
+### 20. Eliminar Match
+DELETE {{baseUrl}}/api/matches/1
+
+# ============================================
+# MENSAJES (vía API REST)
+# ============================================
+
+### 21. Enviar Mensaje
+POST {{baseUrl}}/api/mensajes?idRemitente=1
+Content-Type: application/json
+
+{
+  "idMatch": 1,
+  "idDestinatario": 2,
+  "mensajeTexto": "Hola! Vi que también te gusta la fotografía 📸",
+  "tipoMensaje": "texto"
+}
+
+### 22. Enviar Segundo Mensaje
+POST {{baseUrl}}/api/mensajes?idRemitente=2
+Content-Type: application/json
+
+{
+  "idMatch": 1,
+  "idDestinatario": 1,
+  "mensajeTexto": "¡Hola! Sí, me encanta. ¿Qué tipo de fotografía haces?",
+  "tipoMensaje": "texto"
+}
+
+### 23. Enviar Tercer Mensaje
+POST {{baseUrl}}/api/mensajes?idRemitente=1
+Content-Type: application/json
+
+{
+  "idMatch": 1,
+  "idDestinatario": 2,
+  "mensajeTexto": "Principalmente paisajes y naturaleza. ¿Te gustaría salir a hacer fotos algún día?",
+  "tipoMensaje": "texto"
+}
+
+### 24. Obtener Mensajes por Match
+GET {{baseUrl}}/api/mensajes/match/1
+
+### 25. Obtener Mensajes No Leídos de Usuario
+GET {{baseUrl}}/api/mensajes/no-leidos/2
+
+### 26. Marcar Mensaje Como Leído
+PUT {{baseUrl}}/api/mensajes/1/leer
+
+### 27. Eliminar Mensaje
+DELETE {{baseUrl}}/api/mensajes/1
+
+# ============================================
+# PRUEBA DE FLUJO COMPLETO
+# ============================================
+
+### PASO 1: Registrar Usuario 1
+POST {{baseUrl}}/api/usuarios/registro
+Content-Type: application/json
+
+{
+  "nombre": "Carlos López",
+  "email": "carlos@test.com",
+  "contrasena": "Test123!",
+  "fechaNacimiento": "1994-03-10",
+  "ciudad": "Sevilla",
+  "genero": "Masculino"
+}
+
+### PASO 2: Registrar Usuario 2
+POST {{baseUrl}}/api/usuarios/registro
+Content-Type: application/json
+
+{
+  "nombre": "Ana Martínez",
+  "email": "ana@test.com",
+  "contrasena": "Test123!",
+  "fechaNacimiento": "1996-07-25",
+  "ciudad": "Sevilla",
+  "genero": "Femenino"
+}
+
+### PASO 3: Login Usuario 1 (Guardar el token)
+POST {{baseUrl}}/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "carlos@test.com",
+  "contrasena": "Test123!"
+}
+
+### PASO 4: Crear Match entre Usuario 1 y 2
+# Usa los IDs que te devolvió el registro
+POST {{baseUrl}}/api/matches?idUsuario1=1
+Content-Type: application/json
+
+{
+  "idUsuario2": 2,
+  "compatibilidad": 85.0,
+  "explicacionAfinidad": "Viven en la misma ciudad y tienen edades compatibles"
+}
+
+### PASO 5: Enviar Primer Mensaje
+POST {{baseUrl}}/api/mensajes?idRemitente=1
+Content-Type: application/json
+
+{
+  "idMatch": 1,
+  "idDestinatario": 2,
+  "mensajeTexto": "Hola Ana! Vi que también vives en Sevilla 😊"
+}
+
+### PASO 6: Responder Mensaje
+POST {{baseUrl}}/api/mensajes?idRemitente=2
+Content-Type: application/json
+
+{
+  "idMatch": 1,
+  "idDestinatario": 1,
+  "mensajeTexto": "Hola Carlos! Sí, qué coincidencia! 🎉"
+}
+
+### PASO 7: Ver Conversación Completa
+GET {{baseUrl}}/api/mensajes/match/1
+
+# ============================================
+# EJEMPLOS CON cURL
+# ============================================
+
+# Registrar Usuario
+# curl -X POST "https://localhost:7xxx/api/usuarios/registro" \
+#   -H "Content-Type: application/json" \
+#   -d '{"nombre":"Test User","email":"test@test.com","contrasena":"Pass123!","fechaNacimiento":"1995-01-01","ciudad":"Madrid"}'
+
+# Login
+# curl -X POST "https://localhost:7xxx/api/usuarios/login" \
+#   -H "Content-Type: application/json" \
+#   -d '{"email":"test@test.com","contrasena":"Pass123!"}'
+
+# Obtener Usuarios
+# curl -X GET "https://localhost:7xxx/api/usuarios"
+
+# Crear Match
+# curl -X POST "https://localhost:7xxx/api/matches?idUsuario1=1" \
+#   -H "Content-Type: application/json" \
+#   -d '{"idUsuario2":2,"compatibilidad":85.5}'
+
+# Enviar Mensaje
+# curl -X POST "https://localhost:7xxx/api/mensajes?idRemitente=1" \
+#   -H "Content-Type: application/json" \
+#   -d '{"idMatch":1,"idDestinatario":2,"mensajeTexto":"Hola!"}'
+
+# ============================================
+# NOTAS
+# ============================================
+# - Reemplaza {{baseUrl}} con tu URL real
+# - Los IDs pueden variar según tu base de datos
+# - Algunos endpoints requieren autenticación (token)
+# - SignalR no usa estos endpoints, usa WebSockets
+# - Para probar SignalR usa el archivo SignalR-Client-Example.js

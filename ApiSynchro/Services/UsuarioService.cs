@@ -1,0 +1,206 @@
+using ApiSynchro.Data;
+using ApiSynchro.DTOs;
+using ApiSynchro.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ApiSynchro.Services
+{
+    public interface IUsuarioService
+    {
+        Task<UsuarioResponseDto?> RegistrarUsuarioAsync(UsuarioRegistroDto dto);
+        Task<LoginResponseDto?> LoginAsync(UsuarioLoginDto dto);
+        Task<UsuarioResponseDto?> ObtenerPorIdAsync(int id);
+        Task<List<UsuarioResponseDto>> ObtenerTodosAsync();
+        Task<UsuarioResponseDto?> ActualizarAsync(int id, UsuarioActualizarDto dto);
+        Task<bool> EliminarAsync(int id);
+        Task CerrarSesionAsync(string token);
+        Task<bool> ValidarTokenAsync(string token);
+    }
+
+    public class UsuarioService : IUsuarioService
+    {
+        private readonly SynchroDbContext _context;
+
+        public UsuarioService(SynchroDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<UsuarioResponseDto?> RegistrarUsuarioAsync(UsuarioRegistroDto dto)
+        {
+            var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
+            if (existeEmail)
+                return null;
+
+            var usuario = new Usuario
+            {
+                Nombre = dto.Nombre,
+                Email = dto.Email,
+                Contrasena = BCrypt.Net.BCrypt.HashPassword(dto.Contrasena),
+                FechaNacimiento = dto.FechaNacimiento,
+                Ciudad = dto.Ciudad,
+                IntencionBusqueda = dto.IntencionBusqueda,
+                Genero = dto.Genero,
+                IdiomaPreferido = dto.IdiomaPreferido,
+                Estado = true
+            };
+
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            return MapearADto(usuario);
+        }
+
+        public async Task<LoginResponseDto?> LoginAsync(UsuarioLoginDto dto)
+        {
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Estado);
+
+            if (usuario == null)
+                return null;
+
+            // Validar que la contraseña hasheada tenga un formato válido
+            if (string.IsNullOrEmpty(usuario.Contrasena) || usuario.Contrasena.Length < 20)
+                return null;
+
+            try
+            {
+                // Verificar la contraseña con BCrypt
+                if (!BCrypt.Net.BCrypt.Verify(dto.Contrasena, usuario.Contrasena))
+                    return null;
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // El hash almacenado es inválido
+                return null;
+            }
+
+            var token = GenerarToken();
+            var expiraEn = DateTime.Now.AddDays(7);
+
+            var sesion = new Sesion
+            {
+                IdUsuario = usuario.IdUsuario,
+                Token = token,
+                ExpiraEn = expiraEn,
+                CreadoEn = DateTime.Now
+            };
+
+            _context.Sesiones.Add(sesion);
+            await _context.SaveChangesAsync();
+
+            return new LoginResponseDto
+            {
+                Token = token,
+                ExpiraEn = expiraEn,
+                Usuario = MapearADto(usuario)
+            };
+        }
+
+        public async Task<UsuarioResponseDto?> ObtenerPorIdAsync(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.IntencionBusquedaNavigation)
+                .FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+            return usuario != null ? MapearADto(usuario) : null;
+        }
+
+        public async Task<List<UsuarioResponseDto>> ObtenerTodosAsync()
+        {
+            var usuarios = await _context.Usuarios
+                .Include(u => u.IntencionBusquedaNavigation)
+                .Where(u => u.Estado)
+                .ToListAsync();
+
+            return usuarios.Select(MapearADto).ToList();
+        }
+
+        public async Task<UsuarioResponseDto?> ActualizarAsync(int id, UsuarioActualizarDto dto)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+                return null;
+
+            if (!string.IsNullOrEmpty(dto.Nombre))
+                usuario.Nombre = dto.Nombre;
+            if (dto.Ciudad != null)
+                usuario.Ciudad = dto.Ciudad;
+            if (dto.IntencionBusqueda.HasValue)
+                usuario.IntencionBusqueda = dto.IntencionBusqueda;
+            if (dto.Genero != null)
+                usuario.Genero = dto.Genero;
+            if (dto.FotoPerfil != null)
+                usuario.FotoPerfil = dto.FotoPerfil;
+            if (dto.IdiomaPreferido != null)
+                usuario.IdiomaPreferido = dto.IdiomaPreferido;
+            if (dto.TemaPreferido != null)
+                usuario.TemaPreferido = dto.TemaPreferido;
+            if (dto.BioAI != null)
+                usuario.BioAI = dto.BioAI;
+
+            await _context.SaveChangesAsync();
+            return MapearADto(usuario);
+        }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+                return false;
+
+            usuario.Estado = false;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task CerrarSesionAsync(string token)
+        {
+            var sesion = await _context.Sesiones.FirstOrDefaultAsync(s => s.Token == token);
+            if (sesion != null)
+            {
+                _context.Sesiones.Remove(sesion);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> ValidarTokenAsync(string token)
+        {
+            var sesion = await _context.Sesiones
+                .FirstOrDefaultAsync(s => s.Token == token && s.ExpiraEn > DateTime.Now);
+
+            return sesion != null;
+        }
+
+        private UsuarioResponseDto MapearADto(Usuario usuario)
+        {
+            return new UsuarioResponseDto
+            {
+                IdUsuario = usuario.IdUsuario,
+                Nombre = usuario.Nombre,
+                Email = usuario.Email,
+                FechaNacimiento = usuario.FechaNacimiento,
+                Ciudad = usuario.Ciudad,
+                IntencionBusqueda = usuario.IntencionBusqueda,
+                IntencionBusquedaInfo = usuario.IntencionBusquedaNavigation != null ? new IntencionBusquedaResponseDto
+                {
+                    IdIntencion = usuario.IntencionBusquedaNavigation.IdIntencion,
+                    Nombre = usuario.IntencionBusquedaNavigation.Nombre,
+                    NombreEN = usuario.IntencionBusquedaNavigation.NombreEN
+                } : null,
+                Genero = usuario.Genero,
+                FotoPerfil = usuario.FotoPerfil,
+                IdiomaPreferido = usuario.IdiomaPreferido,
+                TemaPreferido = usuario.TemaPreferido,
+                BioAI = usuario.BioAI,
+                Estado = usuario.Estado
+            };
+        }
+
+        private string GenerarToken()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + 
+                   Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        }
+    }
+}

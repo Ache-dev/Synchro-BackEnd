@@ -1,0 +1,68 @@
+﻿using ApiSynchro.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ApiSynchro.Data
+{
+    public class SynchroDbContext : DbContext
+    {
+        public SynchroDbContext(DbContextOptions<SynchroDbContext> options) : base(options)
+        {
+        }
+
+        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Sesion> Sesiones { get; set; }
+        public DbSet<PreguntaEncuesta> PreguntasEncuesta { get; set; }
+        public DbSet<RespuestaEncuesta> RespuestasEncuesta { get; set; }
+        public DbSet<Match> Matches { get; set; }
+        public DbSet<Mensaje> Mensajes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.Estado).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<Sesion>(entity =>
+            {
+                entity.Property(e => e.CreadoEn).HasDefaultValueSql("GETDATE()");
+            });
+
+            modelBuilder.Entity<Match>(entity =>
+            {
+                entity.Property(e => e.FechaMatch).HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.Estado).HasDefaultValue(true);
+
+                entity.HasOne(m => m.Usuario1)
+                    .WithMany(u => u.MatchesComoUsuario1)
+                    .HasForeignKey(m => m.IdUsuario1)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(m => m.Usuario2)
+                    .WithMany(u => u.MatchesComoUsuario2)
+                    .HasForeignKey(m => m.IdUsuario2)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Mensaje>(entity =>
+            {
+                entity.Property(e => e.FechaMensaje).HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.EstadoLeido).HasDefaultValue(false);
+                entity.Property(e => e.MensajeTexto).HasColumnName("Mensaje");
+
+                entity.HasOne(m => m.Remitente)
+                    .WithMany(u => u.MensajesEnviados)
+                    .HasForeignKey(m => m.IdRemitente)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(m => m.Destinatario)
+                    .WithMany(u => u.MensajesRecibidos)
+                    .HasForeignKey(m => m.IdDestinatario)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+    }
+}
