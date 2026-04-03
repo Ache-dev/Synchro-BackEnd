@@ -1,10 +1,15 @@
 # Synchro BackEnd
 
+<<<<<<< HEAD
 Backend ASP.NET Core (.NET 10) para consumo de base de datos con Dapper.
+=======
+Backend ASP.NET Core (.NET 10) orientado al consumo de una base de datos existente mediante Dapper.
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 
 ## Estado actual
 
 - API REST en `http://localhost:5000`
+<<<<<<< HEAD
 - Swagger habilitado en desarrollo en la raíz
 - SignalR habilitado en `/chatHub`
 - CORS abierto para cualquier origen, encabezado y método
@@ -13,13 +18,24 @@ Backend ASP.NET Core (.NET 10) para consumo de base de datos con Dapper.
 - Modelos de dominio en `Models.cs`
 - Sin capa de DTOs
 - Sin carpeta `Services`
+=======
+- Swagger habilitado en desarrollo
+- SignalR habilitado en `/chatHub`
+- Acceso a BD con una clase central `Repository`
+- Consultas SQL centralizadas en `Query.cs`
+- Sin DTOs ni interfaces
+- Sin carpeta `Data`, `Repository` ni `Security`
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 
 ## Tecnologías
 
 - .NET 10
 - ASP.NET Core Web API
 - Dapper
+<<<<<<< HEAD
 - Dapper.Contrib
+=======
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 - Microsoft.Data.SqlClient
 - Swashbuckle.AspNetCore
 - SignalR
@@ -28,6 +44,7 @@ Backend ASP.NET Core (.NET 10) para consumo de base de datos con Dapper.
 
 ```text
 ApiSynchro/
+<<<<<<< HEAD
 ├─ Controllers/
 ├─ Hubs/
 ├─ AppHost.cs
@@ -35,6 +52,15 @@ ApiSynchro/
 ├─ Query.cs
 ├─ Repository.cs
 └─ appsettings.json
+=======
++- Controllers/
++- Hubs/
++- Models.cs
++- Program.cs
++- Query.cs
++- Repository.cs
++- appsettings.json
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 ```
 
 ## Configuración
@@ -60,7 +86,11 @@ dotnet run
 
 ## Swagger
 
+<<<<<<< HEAD
 En desarrollo abre:
+=======
+En entorno de desarrollo abre:
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 
 - `http://localhost:5000`
 
@@ -76,6 +106,7 @@ En desarrollo abre:
 - `PUT /api/v1/usuarios/{id}`
 - `DELETE /api/v1/usuarios/{id}`
 
+<<<<<<< HEAD
 #### Login
 
 - Entrada: JSON con `email` y `contrasena`
@@ -83,6 +114,8 @@ En desarrollo abre:
 - El token de cierre de sesión se envía en el encabezado `Authorization`
 - Formato aceptado: `Bearer {token}` o token directo
 
+=======
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 ### Matches
 
 - `GET /api/v1/matches`
@@ -97,7 +130,10 @@ En desarrollo abre:
 - `GET /api/v1/mensajes/match/{idMatch}`
 - `GET /api/v1/mensajes/conversacion/{idRemitente}/{idDestinatario}`
 - `GET /api/v1/mensajes/{id}`
+<<<<<<< HEAD
 - `GET /api/v1/mensajes/no-leidos/{idUsuario}`
+=======
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 - `POST /api/v1/mensajes`
 - `PUT /api/v1/mensajes/{id}/marcar-leido`
 - `DELETE /api/v1/mensajes/{id}`
@@ -118,7 +154,10 @@ En desarrollo abre:
 - `GET /api/v1/encuestas/respuestas/{id}`
 - `GET /api/v1/encuestas/usuario/{idUsuario}/respuestas`
 - `POST /api/v1/encuestas/respuestas`
+<<<<<<< HEAD
 - `POST /api/v1/encuestas/respuestas/batch?idUsuario={idUsuario}`
+=======
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62
 - `PUT /api/v1/encuestas/respuestas/{id}`
 - `DELETE /api/v1/encuestas/respuestas/{id}`
 
@@ -136,7 +175,13 @@ En desarrollo abre:
 
 ## Notas
 
+<<<<<<< HEAD
 - La API trabaja con entidades de `Models.cs`.
 - `Repository.cs` centraliza acceso a datos y hash de contraseñas.
 - `Query.cs` contiene las sentencias SQL.
 - El login crea sesión con expiración de 7 días y devuelve token.
+=======
+- El backend trabaja directamente con entidades de `Models.cs`.
+- `Repository.cs` centraliza el acceso a la base de datos.
+- `Query.cs` contiene las sentencias SQL utilizadas por la API.
+>>>>>>> 74febe41812b6cff4fdb8846a9a696e852b90f62

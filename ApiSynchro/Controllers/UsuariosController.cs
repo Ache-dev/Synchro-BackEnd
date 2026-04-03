@@ -122,5 +122,15 @@ namespace ApiSynchro.Controllers
             var eliminado = await _repository.EliminarUsuarioAsync(id);
             return eliminado ? NoContent() : NotFound();
         }
+
+        [HttpPost("{id}/generar-bio")]
+        public async Task<ActionResult> GenerarBio(int id)
+        {
+            var bio = await _usuarioService.GenerarBioConIAAsync(id);
+            if (bio == null)
+                return NotFound(new { mensaje = "Usuario no encontrado" });
+
+            return Ok(new { bioAI = bio });
+        }
     }
 }
