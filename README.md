@@ -1,18 +1,18 @@
 # Synchro BackEnd
 
-Backend ASP.NET Core (.NET 10) orientado al consumo de una base de datos existente mediante Dapper.
+Backend ASP.NET Core (.NET 10) para consumo de base de datos con Dapper.
 
 ## Estado actual
 
 - API REST en `http://localhost:5000`
-- Swagger habilitado en desarrollo en la raíz del proyecto
+- Swagger habilitado en desarrollo en la raíz
 - SignalR habilitado en `/chatHub`
-- CORS habilitado para permitir cualquier origen, método y encabezado
-- Acceso a base de datos centralizado en `Repository.cs`
+- CORS abierto para cualquier origen, encabezado y método
+- Acceso a BD centralizado en `Repository.cs`
 - Consultas SQL centralizadas en `Query.cs`
 - Modelos de dominio en `Models.cs`
-- DTOs para autenticación en `ApiSynchro/DTOs`
-- Autenticación por login con creación de sesión y token
+- Sin capa de DTOs
+- Sin carpeta `Services`
 
 ## Tecnologías
 
@@ -29,10 +29,9 @@ Backend ASP.NET Core (.NET 10) orientado al consumo de una base de datos existen
 ```text
 ApiSynchro/
 ├─ Controllers/
-├─ DTOs/
 ├─ Hubs/
+├─ AppHost.cs
 ├─ Models.cs
-├─ Program.cs
 ├─ Query.cs
 ├─ Repository.cs
 └─ appsettings.json
@@ -79,10 +78,10 @@ En desarrollo abre:
 
 #### Login
 
-- Entrada: `LoginDto` con `Email` y `Contrasena`
-- Respuesta: `LoginResponse` con `Token`, `ExpiraEn` y `Usuario`
+- Entrada: JSON con `email` y `contrasena`
+- Respuesta: JSON con `token`, `expiraEn` y `usuario`
 - El token de cierre de sesión se envía en el encabezado `Authorization`
-- Formato aceptado: `Bearer {token}` o el token directo
+- Formato aceptado: `Bearer {token}` o token directo
 
 ### Matches
 
@@ -135,19 +134,9 @@ En desarrollo abre:
 
 - `/chatHub`
 
-## Modelos principales
-
-- `Usuario`
-- `Sesion`
-- `Match`
-- `Mensaje`
-- `PreguntaEncuesta`
-- `RespuestaEncuesta`
-- `IntencionBusqueda`
-
 ## Notas
 
-- La API trabaja directamente con entidades definidas en `Models.cs`.
-- `Repository.cs` centraliza el acceso a la base de datos y el hash de contraseñas.
-- `Query.cs` contiene las sentencias SQL utilizadas por la API.
-- El login crea una sesión con expiración de 7 días y devuelve un token.
+- La API trabaja con entidades de `Models.cs`.
+- `Repository.cs` centraliza acceso a datos y hash de contraseñas.
+- `Query.cs` contiene las sentencias SQL.
+- El login crea sesión con expiración de 7 días y devuelve token.

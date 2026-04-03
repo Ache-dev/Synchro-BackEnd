@@ -2,7 +2,7 @@ using ApiSynchro.Hubs;
 
 namespace ApiSynchro
 {
-    public class Program
+    public class AppHost
     {
         public static void Main(string[] args)
         {
@@ -10,21 +10,17 @@ namespace ApiSynchro
 
             builder.WebHost.UseUrls("http://localhost:5000");
 
-            // Logging configuration
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
             builder.Logging.AddDebug();
             builder.Logging.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.None);
 
-            // Dependency injection
             builder.Services.AddSingleton<Repository>();
 
-            // Controllers and API documentation
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // SignalR and CORS configuration
             builder.Services.AddSignalR();
             builder.Services.AddCors(options =>
             {
@@ -36,7 +32,6 @@ namespace ApiSynchro
 
             var app = builder.Build();
 
-            // Middleware configuration
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

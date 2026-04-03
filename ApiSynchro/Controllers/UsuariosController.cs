@@ -49,13 +49,19 @@ namespace ApiSynchro.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<ApiSynchro.DTOs.LoginResponse>> Login([FromBody] ApiSynchro.DTOs.LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] Dictionary<string, string> credenciales)
         {
-            var registrado = await _repository.ObtenerUsuarioPorEmailAsync(loginDto.Email);
+            if (!credenciales.TryGetValue("email", out var email) || string.IsNullOrWhiteSpace(email) ||
+                !credenciales.TryGetValue("contrasena", out var contrasena) || string.IsNullOrWhiteSpace(contrasena))
+            {
+                return BadRequest(new { mensaje = "Email y contraseña son requeridos." });
+            }
+
+            var registrado = await _repository.ObtenerUsuarioPorEmailAsync(email);
             if (registrado is null)
                 return Unauthorized(new { mensaje = "Credenciales inválidas." });
 
-            var hashIngresado = Repository.CalcularHash(loginDto.Contrasena);
+            var hashIngresado = Repository.CalcularHash(contrasena);
             if (!string.Equals(registrado.Contrasena, hashIngresado, StringComparison.OrdinalIgnoreCase))
                 return Unauthorized(new { mensaje = "Credenciales inválidas." });
 
@@ -70,14 +76,13 @@ namespace ApiSynchro.Controllers
             sesion.IdSesion = await _repository.CrearSesionAsync(sesion);
             _logger.LogInformation("Login exitoso para usuario: {Email}", registrado.Email);
 
-            // Hide password before returning
             registrado.Contrasena = string.Empty;
 
-            return Ok(new ApiSynchro.DTOs.LoginResponse
+            return Ok(new
             {
-                Token = sesion.Token,
-                ExpiraEn = sesion.ExpiraEn,
-                Usuario = registrado
+                token = sesion.Token,
+                expiraEn = sesion.ExpiraEn,
+                usuario = registrado
             });
         }
 
