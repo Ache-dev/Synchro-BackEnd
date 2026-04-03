@@ -1,7 +1,4 @@
-using ApiSynchro.Data;
 using ApiSynchro.Hubs;
-using ApiSynchro.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiSynchro
 {
@@ -11,57 +8,61 @@ namespace ApiSynchro
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<SynchroDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.WebHost.UseUrls("http://localhost:5000");
 
-            builder.Services.AddScoped<IIntencionBusquedaService, IntencionBusquedaService>();
-            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-            builder.Services.AddScoped<IMatchService, MatchService>();
-            builder.Services.AddScoped<IMensajeService, MensajeService>();
-            builder.Services.AddScoped<IEncuestaService, EncuestaService>();
+            // Logging configuration
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
+            builder.Logging.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.None);
 
+            // Dependency injection
+            builder.Services.AddSingleton<Repository>();
+
+            // Controllers and API documentation
             builder.Services.AddControllers();
-
-            builder.Services.AddSignalR();
-
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", policy =>
-                {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
-                });
-
-                options.AddPolicy("SignalRPolicy", policy =>
-                {
-                    policy.WithOrigins("http://localhost:3000", "http://localhost:4200")
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
-                });
-            });
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // SignalR and CORS configuration
+            builder.Services.AddSignalR();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
+            });
+
             var app = builder.Build();
 
+            // Middleware configuration
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Synchro API v1");
+                    options.RoutePrefix = string.Empty;
+                });
             }
 
-            app.UseCors("SignalRPolicy");
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
+            app.UseCors("AllowAll");
             app.MapControllers();
-
             app.MapHub<ChatHub>("/chatHub");
+
+            app.Lifetime.ApplicationStarted.Register(() =>
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("=================================================");
+                Console.WriteLine("  Synchro API - Servicio iniciado correctamente  ");
+                Console.WriteLine("=================================================");
+                Console.ResetColor();
+                Console.WriteLine("Entorno   : " + app.Environment.EnvironmentName);
+                Console.WriteLine("URL       : http://localhost:5000");
+                Console.WriteLine("Estado    : Listo para recibir solicitudes");
+                Console.WriteLine();
+            });
 
             app.Run();
         }

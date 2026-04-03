@@ -1,76 +1,60 @@
-using ApiSynchro.DTOs;
-using ApiSynchro.Services;
+using ApiSynchro.Models;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ApiSynchro.Hubs
 {
-    public class ChatHub : Hub
+    public sealed class ChatHub : Hub
     {
-        private readonly IMensajeService _mensajeService;
-        private static readonly Dictionary<int, string> _usuariosConectados = new();
+        private readonly Repository _repository;
+        private readonly ILogger<ChatHub> _logger;
+        private static readonly Dictionary<int, string> UsuariosConectados = new();
 
-        public ChatHub(IMensajeService mensajeService)
+        public ChatHub(Repository repository, ILogger<ChatHub> logger)
         {
-            _mensajeService = mensajeService;
+            _repository = repository;
+            _logger = logger;
         }
 
-        public async Task ConectarUsuario(int idUsuario)
+        public Task ConectarUsuario(int idUsuario)
         {
-            _usuariosConectados[idUsuario] = Context.ConnectionId;
-            await Clients.Caller.SendAsync("UsuarioConectado", "Conectado exitosamente");
+            UsuariosConectados[idUsuario] = Context.ConnectionId;
+            _logger.LogInformation("Usuario conectado por SignalR: {IdUsuario}", idUsuario);
+            return Clients.Caller.SendAsync("UsuarioConectado", true);
         }
 
-        public async Task EnviarMensaje(int idRemitente, MensajeCreateDto mensajeDto)
+        public async Task EnviarMensaje(Mensaje mensaje)
         {
-            var mensaje = await _mensajeService.EnviarMensajeAsync(idRemitente, mensajeDto);
+            var id = await _repository.CrearMensajeAsync(mensaje);
+            mensaje.IdMensaje = id;
 
-            if (mensaje != null)
+            if (UsuariosConectados.TryGetValue(mensaje.IdDestinatario, out var connectionId))
             {
-                if (_usuariosConectados.TryGetValue(mensajeDto.IdDestinatario, out var connectionId))
-                {
-                    await Clients.Client(connectionId).SendAsync("RecibirMensaje", mensaje);
-                }
+                await Clients.Client(connectionId).SendAsync("RecibirMensaje", mensaje);
+            }
 
-                await Clients.Caller.SendAsync("MensajeEnviado", mensaje);
+            await Clients.Caller.SendAsync("MensajeEnviado", mensaje);
+        }
+
+        public async Task NotificarEscribiendo(int idUsuarioReceptor, bool escribiendo)
+        {
+            if (UsuariosConectados.TryGetValue(idUsuarioReceptor, out var connectionId))
+            {
+                await Clients.Client(connectionId).SendAsync("UsuarioEscribiendo", escribiendo);
             }
         }
 
-        public async Task MarcarComoLeido(int idMensaje)
+        public async Task<IEnumerable<Mensaje>> ObtenerHistorialChat(int idMatch)
         {
-            var resultado = await _mensajeService.MarcarComoLeidoAsync(idMensaje);
-            if (resultado)
-            {
-                await Clients.Caller.SendAsync("MensajeLeido", idMensaje);
-            }
+            return await _repository.ObtenerMensajesPorMatchAsync(idMatch);
         }
 
-        public async Task NotificarEscribiendo(int idUsuarioReceptor, int idMatch, bool escribiendo)
+        public override Task OnDisconnectedAsync(Exception? exception)
         {
-            if (_usuariosConectados.TryGetValue(idUsuarioReceptor, out var connectionId))
-            {
-                await Clients.Client(connectionId).SendAsync("UsuarioEscribiendo", idMatch, escribiendo);
-            }
-        }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            var usuario = _usuariosConectados.FirstOrDefault(x => x.Value == Context.ConnectionId);
+            var usuario = UsuariosConectados.FirstOrDefault(x => x.Value == Context.ConnectionId);
             if (usuario.Key != 0)
-            {
-                _usuariosConectados.Remove(usuario.Key);
-            }
+                UsuariosConectados.Remove(usuario.Key);
 
-            await base.OnDisconnectedAsync(exception);
-        }
-
-        public async Task<List<MensajeDto>> ObtenerHistorialChat(int idMatch)
-        {
-            return await _mensajeService.ObtenerMensajesPorMatchAsync(idMatch);
-        }
-
-        public async Task<List<MensajeDto>> ObtenerMensajesNoLeidos(int idUsuario)
-        {
-            return await _mensajeService.ObtenerMensajesNoLeidosAsync(idUsuario);
+            return base.OnDisconnectedAsync(exception);
         }
     }
 }

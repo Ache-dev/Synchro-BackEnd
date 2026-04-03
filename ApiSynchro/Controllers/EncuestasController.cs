@@ -1,48 +1,106 @@
-using ApiSynchro.DTOs;
-using ApiSynchro.Services;
+using ApiSynchro.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiSynchro.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/encuestas")]
     public class EncuestasController : ControllerBase
     {
-        private readonly IEncuestaService _encuestaService;
+        private readonly Repository _repository;
 
-        public EncuestasController(IEncuestaService encuestaService)
+        public EncuestasController(Repository repository)
         {
-            _encuestaService = encuestaService;
+            _repository = repository;
         }
 
-        [HttpGet("preguntas")]
-        public async Task<ActionResult<List<PreguntaEncuestaDto>>> ObtenerPreguntas()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PreguntaEncuesta>>> ObtenerPreguntas()
         {
-            var preguntas = await _encuestaService.ObtenerPreguntasAsync();
-            return Ok(preguntas);
+            return Ok(await _repository.ObtenerPreguntasAsync());
         }
 
-        [HttpPost("preguntas")]
-        public async Task<ActionResult<PreguntaEncuestaDto>> CrearPregunta([FromBody] PreguntaEncuestaCreateDto dto)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PreguntaEncuesta>> ObtenerPreguntaPorId(int id)
         {
-            var pregunta = await _encuestaService.CrearPreguntaAsync(dto);
-            return CreatedAtAction(nameof(ObtenerPreguntas), pregunta);
+            var pregunta = await _repository.ObtenerPreguntaPorIdAsync(id);
+            return pregunta is null ? NotFound() : Ok(pregunta);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<PreguntaEncuesta>> CrearPregunta([FromBody] PreguntaEncuesta pregunta)
+        {
+            var id = await _repository.CrearPreguntaAsync(pregunta);
+            pregunta.IdPregunta = id;
+            return CreatedAtAction(nameof(ObtenerPreguntaPorId), new { id }, pregunta);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarPregunta(int id, [FromBody] PreguntaEncuesta pregunta)
+        {
+            pregunta.IdPregunta = id;
+            var actualizado = await _repository.ActualizarPreguntaAsync(pregunta);
+            return actualizado ? NoContent() : NotFound();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarPregunta(int id)
+        {
+            var eliminado = await _repository.EliminarPreguntaAsync(id);
+            return eliminado ? NoContent() : NotFound();
+        }
+
+        [HttpGet("respuestas")]
+        public async Task<ActionResult<IEnumerable<RespuestaEncuesta>>> ObtenerRespuestas()
+        {
+            return Ok(await _repository.ObtenerRespuestasAsync());
+        }
+
+        [HttpGet("respuestas/{id}")]
+        public async Task<ActionResult<RespuestaEncuesta>> ObtenerRespuestaPorId(int id)
+        {
+            var respuesta = await _repository.ObtenerRespuestaPorIdAsync(id);
+            return respuesta is null ? NotFound() : Ok(respuesta);
+        }
+
+        [HttpGet("usuario/{idUsuario}/respuestas")]
+        public async Task<ActionResult<IEnumerable<RespuestaEncuesta>>> ObtenerRespuestasPorUsuario(int idUsuario)
+        {
+            return Ok(await _repository.ObtenerRespuestasPorUsuarioAsync(idUsuario));
         }
 
         [HttpPost("respuestas")]
-        public async Task<ActionResult<List<RespuestaEncuestaDto>>> GuardarRespuestas(
-            [FromQuery] int idUsuario, 
-            [FromBody] RespuestasEncuestaCreateDto dto)
+        public async Task<ActionResult<RespuestaEncuesta>> CrearRespuesta([FromBody] RespuestaEncuesta respuesta)
         {
-            var respuestas = await _encuestaService.GuardarRespuestasAsync(idUsuario, dto);
-            return CreatedAtAction(nameof(ObtenerRespuestasPorUsuario), new { idUsuario }, respuestas);
+            var id = await _repository.CrearRespuestaAsync(respuesta);
+            respuesta.IdRespuesta = id;
+            return CreatedAtAction(nameof(ObtenerRespuestaPorId), new { id }, respuesta);
         }
 
-        [HttpGet("respuestas/usuario/{idUsuario}")]
-        public async Task<ActionResult<List<RespuestaEncuestaDto>>> ObtenerRespuestasPorUsuario(int idUsuario)
+        [HttpPost("respuestas/batch")]
+        public async Task<IActionResult> CrearRespuestasBatch([FromQuery] int idUsuario, [FromBody] IEnumerable<RespuestaEncuesta> respuestas)
         {
-            var respuestas = await _encuestaService.ObtenerRespuestasPorUsuarioAsync(idUsuario);
-            return Ok(respuestas);
+            foreach (var r in respuestas)
+            {
+                r.IdUsuario = idUsuario;
+                await _repository.CrearRespuestaAsync(r);
+            }
+            return Ok(new { mensaje = "Respuestas guardadas correctamente." });
+        }
+
+        [HttpPut("respuestas/{id}")]
+        public async Task<IActionResult> ActualizarRespuesta(int id, [FromBody] RespuestaEncuesta respuesta)
+        {
+            respuesta.IdRespuesta = id;
+            var actualizado = await _repository.ActualizarRespuestaAsync(respuesta);
+            return actualizado ? NoContent() : NotFound();
+        }
+
+        [HttpDelete("respuestas/{id}")]
+        public async Task<IActionResult> EliminarRespuesta(int id)
+        {
+            var eliminado = await _repository.EliminarRespuestaAsync(id);
+            return eliminado ? NoContent() : NotFound();
         }
     }
 }

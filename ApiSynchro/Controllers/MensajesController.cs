@@ -1,62 +1,64 @@
-using ApiSynchro.DTOs;
-using ApiSynchro.Services;
+using ApiSynchro.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiSynchro.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/mensajes")]
     public class MensajesController : ControllerBase
     {
-        private readonly IMensajeService _mensajeService;
+        private readonly Repository _repository;
 
-        public MensajesController(IMensajeService mensajeService)
+        public MensajesController(Repository repository)
         {
-            _mensajeService = mensajeService;
+            _repository = repository;
         }
 
         [HttpPost]
-        public async Task<ActionResult<MensajeDto>> EnviarMensaje([FromQuery] int idRemitente, [FromBody] MensajeCreateDto dto)
+        public async Task<ActionResult<Mensaje>> Crear([FromBody] Mensaje mensaje)
         {
-            var mensaje = await _mensajeService.EnviarMensajeAsync(idRemitente, dto);
-            if (mensaje == null)
-                return BadRequest(new { mensaje = "No se pudo enviar el mensaje. Verifica el match y los usuarios." });
-
-            return CreatedAtAction(nameof(ObtenerPorMatch), new { idMatch = dto.IdMatch }, mensaje);
+            var id = await _repository.CrearMensajeAsync(mensaje);
+            mensaje.IdMensaje = id;
+            return CreatedAtAction(nameof(ObtenerPorId), new { id }, mensaje);
         }
 
         [HttpGet("match/{idMatch}")]
-        public async Task<ActionResult<List<MensajeDto>>> ObtenerPorMatch(int idMatch)
+        public async Task<ActionResult<IEnumerable<Mensaje>>> ObtenerPorMatch(int idMatch)
         {
-            var mensajes = await _mensajeService.ObtenerMensajesPorMatchAsync(idMatch);
-            return Ok(mensajes);
+            return Ok(await _repository.ObtenerMensajesPorMatchAsync(idMatch));
+        }
+
+        [HttpGet("conversacion/{idRemitente}/{idDestinatario}")]
+        public async Task<ActionResult<IEnumerable<Mensaje>>> ObtenerConversacion(int idRemitente, int idDestinatario)
+        {
+            return Ok(await _repository.ObtenerConversacionAsync(idRemitente, idDestinatario));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Mensaje>> ObtenerPorId(int id)
+        {
+            var mensaje = await _repository.ObtenerMensajePorIdAsync(id);
+            return mensaje is null ? NotFound() : Ok(mensaje);
         }
 
         [HttpGet("no-leidos/{idUsuario}")]
-        public async Task<ActionResult<List<MensajeDto>>> ObtenerNoLeidos(int idUsuario)
+        public async Task<ActionResult<IEnumerable<Mensaje>>> ObtenerNoLeidos(int idUsuario)
         {
-            var mensajes = await _mensajeService.ObtenerMensajesNoLeidosAsync(idUsuario);
-            return Ok(mensajes);
+            return Ok(await _repository.ObtenerMensajesNoLeidosAsync(idUsuario));
         }
 
-        [HttpPut("{id}/leer")]
-        public async Task<ActionResult> MarcarComoLeido(int id)
+        [HttpPut("{id}/marcar-leido")]
+        public async Task<IActionResult> MarcarLeido(int id)
         {
-            var resultado = await _mensajeService.MarcarComoLeidoAsync(id);
-            if (!resultado)
-                return NotFound(new { mensaje = "Mensaje no encontrado" });
-
-            return Ok(new { mensaje = "Mensaje marcado como leído" });
+            var actualizado = await _repository.MarcarMensajeComoLeidoAsync(id);
+            return actualizado ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id)
         {
-            var resultado = await _mensajeService.EliminarMensajeAsync(id);
-            if (!resultado)
-                return NotFound(new { mensaje = "Mensaje no encontrado" });
-
-            return Ok(new { mensaje = "Mensaje eliminado exitosamente" });
+            var eliminado = await _repository.EliminarMensajeAsync(id);
+            return eliminado ? NoContent() : NotFound();
         }
     }
 }

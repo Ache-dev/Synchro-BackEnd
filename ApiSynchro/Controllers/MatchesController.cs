@@ -1,65 +1,58 @@
-using ApiSynchro.DTOs;
-using ApiSynchro.Services;
+using ApiSynchro.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiSynchro.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/matches")]
     public class MatchesController : ControllerBase
     {
-        private readonly IMatchService _matchService;
+        private readonly Repository _repository;
 
-        public MatchesController(IMatchService matchService)
+        public MatchesController(Repository repository)
         {
-            _matchService = matchService;
+            _repository = repository;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<MatchDto>> CrearMatch([FromQuery] int idUsuario1, [FromBody] MatchCreateDto dto)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Match>>> ObtenerTodos()
         {
-            var match = await _matchService.CrearMatchAsync(idUsuario1, dto);
-            if (match == null)
-                return BadRequest(new { mensaje = "No se pudo crear el match. Verifica que los usuarios existan." });
-
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = match.IdMatch }, match);
+            return Ok(await _repository.ObtenerMatchesAsync());
         }
 
         [HttpGet("usuario/{idUsuario}")]
-        public async Task<ActionResult<List<MatchDto>>> ObtenerPorUsuario(int idUsuario)
+        public async Task<ActionResult<IEnumerable<Match>>> ObtenerPorUsuario(int idUsuario)
         {
-            var matches = await _matchService.ObtenerMatchesPorUsuarioAsync(idUsuario);
-            return Ok(matches);
+            return Ok(await _repository.ObtenerMatchesPorUsuarioAsync(idUsuario));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<MatchDto>> ObtenerPorId(int id)
+        public async Task<ActionResult<Match>> ObtenerPorId(int id)
         {
-            var match = await _matchService.ObtenerMatchPorIdAsync(id);
-            if (match == null)
-                return NotFound(new { mensaje = "Match no encontrado" });
-
-            return Ok(match);
+            var match = await _repository.ObtenerMatchPorIdAsync(id);
+            return match is null ? NotFound() : Ok(match);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<MatchDto>> Actualizar(int id, [FromBody] MatchActualizarDto dto)
+        [HttpPost]
+        public async Task<ActionResult<Match>> Crear([FromBody] Match match)
         {
-            var match = await _matchService.ActualizarMatchAsync(id, dto);
-            if (match == null)
-                return NotFound(new { mensaje = "Match no encontrado" });
+            var id = await _repository.CrearMatchAsync(match);
+            match.IdMatch = id;
+            return CreatedAtAction(nameof(ObtenerPorId), new { id }, match);
+        }
 
-            return Ok(match);
+        [HttpPut("{id}/estado")]
+        public async Task<IActionResult> ActualizarEstado(int id, [FromQuery] bool estado)
+        {
+            var actualizado = await _repository.ActualizarEstadoMatchAsync(id, estado);
+            return actualizado ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id)
         {
-            var resultado = await _matchService.EliminarMatchAsync(id);
-            if (!resultado)
-                return NotFound(new { mensaje = "Match no encontrado" });
-
-            return Ok(new { mensaje = "Match eliminado exitosamente" });
+            var eliminado = await _repository.EliminarMatchAsync(id);
+            return eliminado ? NoContent() : NotFound();
         }
     }
 }
