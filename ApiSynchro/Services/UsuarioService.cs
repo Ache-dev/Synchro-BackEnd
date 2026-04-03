@@ -15,15 +15,18 @@ namespace ApiSynchro.Services
         Task<bool> EliminarAsync(int id);
         Task CerrarSesionAsync(string token);
         Task<bool> ValidarTokenAsync(string token);
+        Task<string?> GenerarBioConIAAsync(int id);
     }
 
     public class UsuarioService : IUsuarioService
     {
         private readonly SynchroDbContext _context;
+        private readonly IOllamaService _ollamaService;
 
-        public UsuarioService(SynchroDbContext context)
+        public UsuarioService(SynchroDbContext context, IOllamaService ollamaService)
         {
             _context = context;
+            _ollamaService = ollamaService;
         }
 
         public async Task<UsuarioResponseDto?> RegistrarUsuarioAsync(UsuarioRegistroDto dto)
@@ -104,6 +107,28 @@ namespace ApiSynchro.Services
                 .FirstOrDefaultAsync(u => u.IdUsuario == id);
 
             return usuario != null ? MapearADto(usuario) : null;
+        }
+
+        public async Task<string?> GenerarBioConIAAsync(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.IntencionBusquedaNavigation)
+                .FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+            if (usuario == null) return null;
+
+            var intencion = usuario.IntencionBusquedaNavigation?.Nombre ?? "Conocer gente";
+            
+            var bioGenerada = await _ollamaService.GenerarBioAsync(
+                usuario.Nombre,
+                $"Intención: {intencion}",
+                usuario.BioAI ?? ""
+            );
+
+            usuario.BioAI = bioGenerada;
+            await _context.SaveChangesAsync();
+
+            return bioGenerada;
         }
 
         public async Task<List<UsuarioResponseDto>> ObtenerTodosAsync()

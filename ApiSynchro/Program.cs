@@ -20,9 +20,20 @@ namespace ApiSynchro
             builder.Services.AddScoped<IMensajeService, MensajeService>();
             builder.Services.AddScoped<IEncuestaService, EncuestaService>();
 
-            builder.Services.AddControllers();
+            builder.Services.AddHttpClient<IOllamaService, OllamaService>();
 
-            builder.Services.AddSignalR();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
+
+            builder.Services.AddSignalR()
+                .AddJsonProtocol(options =>
+                {
+                    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
 
             builder.Services.AddCors(options =>
             {
