@@ -1,17 +1,18 @@
 # Synchro BackEnd
 
-Backend ASP.NET Core (.NET 10) para consumir una base de datos existente con Dapper.
+API ASP.NET Core (.NET 10) para consumir una base de datos existente con Dapper.
 
 ## Estado actual
 
-- API REST
-- Swagger habilitado en desarrollo
+- API REST funcional
+- Swagger habilitado en desarrollo en la raíz
 - SignalR disponible en `/chatHub`
-- CORS configurado para orígenes de frontend locales
+- La aplicación escucha en `http://localhost:5000`
 - Acceso a base de datos centralizado en `Repository.cs`
 - Consultas SQL centralizadas en `Query.cs`
 - Modelos de dominio en `Models.cs`
-- Sin uso de DTOs
+- Sin DTOs
+- Sin capa de Services
 
 ## Tecnologías
 
@@ -26,18 +27,18 @@ Backend ASP.NET Core (.NET 10) para consumir una base de datos existente con Dap
 
 ```text
 ApiSynchro/
+├─ AppHost.cs
 ├─ Controllers/
 ├─ Hubs/
 ├─ Models.cs
 ├─ Query.cs
 ├─ Repository.cs
-├─ Program.cs
 └─ appsettings.json
 ```
 
 ## Configuración
 
-### Connection string
+### Cadena de conexión
 
 Editar `ApiSynchro/appsettings.json`:
 
@@ -58,7 +59,9 @@ dotnet run
 
 ## Swagger
 
-En entorno de desarrollo, la documentación está disponible en la URL que expone la aplicación al iniciar.
+En desarrollo, la documentación se abre en la raíz de la aplicación:
+
+- `http://localhost:5000`
 
 ## Endpoints disponibles
 
@@ -133,7 +136,8 @@ En entorno de desarrollo, la documentación está disponible en la URL que expon
 
 ## Notas
 
-- La API trabaja directamente con entidades de `Models.cs`.
-- `Repository.cs` centraliza el acceso a datos y el manejo de sesiones.
-- `Query.cs` contiene las sentencias SQL.
+- La API trabaja directamente con las entidades de `Models.cs`.
+- `Repository.cs` centraliza el acceso a la base de datos, autenticación por sesión y consultas SQL.
+- `Query.cs` contiene las sentencias SQL utilizadas por la API.
+- El inicio de la aplicación está en `AppHost.cs`.
 - El login crea una sesión con expiración de 7 días y devuelve un token.

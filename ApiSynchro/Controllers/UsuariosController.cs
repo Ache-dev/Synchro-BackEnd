@@ -126,11 +126,20 @@ namespace ApiSynchro.Controllers
         [HttpPost("{id}/generar-bio")]
         public async Task<ActionResult> GenerarBio(int id)
         {
-            var bio = await _usuarioService.GenerarBioConIAAsync(id);
-            if (bio == null)
+            var usuario = await _repository.ObtenerUsuarioPorIdAsync(id);
+            if (usuario is null)
                 return NotFound(new { mensaje = "Usuario no encontrado" });
 
-            return Ok(new { bioAI = bio });
+            usuario.BioAI = string.IsNullOrWhiteSpace(usuario.Ciudad)
+                ? $"{usuario.Nombre} está abierto a conocer nuevas personas y compartir buenos momentos."
+                : $"{usuario.Nombre} vive en {usuario.Ciudad} y está abierto a conocer nuevas personas con intereses afines.";
+
+            var actualizado = await _repository.ActualizarUsuarioAsync(usuario, actualizarPassword: false);
+            if (!actualizado)
+                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo actualizar la bio." });
+
+            _logger.LogInformation("Bio generada para usuario: {IdUsuario}", id);
+            return Ok(new { bioAI = usuario.BioAI });
         }
     }
 }
