@@ -1,5 +1,8 @@
 namespace ApiSynchro
 {
+    /// <summary>
+    /// Centraliza las sentencias SQL utilizadas por el repositorio para operaciones de lectura y escritura.
+    /// </summary>
     public static class Query
     {
         public const string UsuariosSelectAll = @"
@@ -57,6 +60,11 @@ SET Nombre = @Nombre,
     Estado = @Estado
 WHERE IdUsuario = @IdUsuario;";
 
+        public const string UsuarioUpdateEmbedding = @"
+UPDATE [Usuario]
+SET EmbeddingPerfil = @embedding
+WHERE IdUsuario = @id;";
+
         public const string UsuarioDelete = "DELETE FROM [Usuario] WHERE IdUsuario = @id;";
 
         public const string SesionSelectByToken = @"
@@ -110,7 +118,13 @@ SET Estado = @estado,
     FechaActualizacion = @fechaActualizacion
 WHERE IdMatch = @id;";
 
+
         public const string MatchDelete = "DELETE FROM [Match] WHERE IdMatch = @id;";
+
+        public const string UsuariosSelectForMatching = @"
+SELECT IdUsuario, Nombre, Email, BioAI, EmbeddingPerfil, Estado
+FROM [Usuario]
+WHERE Estado = 1 AND EmbeddingPerfil IS NOT NULL;";
 
         public const string MensajeSelectByMatch = @"
 SELECT IdMensaje, IdMatch, IdRemitente, IdDestinatario, [Mensaje] AS MensajeTexto, FechaMensaje, TipoMensaje, EstadoLeido
@@ -146,6 +160,8 @@ FROM [Mensaje]
 WHERE IdDestinatario = @idUsuario AND EstadoLeido = 0 AND Estado = 1;";
 
         public const string MensajeDelete = "DELETE FROM [Mensaje] WHERE IdMensaje = @id;";
+
+        public const string MensajeDeleteByMatch = "DELETE FROM [Mensaje] WHERE IdMatch = @idMatch;";
 
         public const string PreguntasSelectAll = @"
 SELECT IdPregunta, TextoPregunta, TextoPreguntaEN, Icono, Orden
