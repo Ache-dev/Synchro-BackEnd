@@ -1,226 +1,152 @@
-using ApiSynchro.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using Model;
+using Query.Interfaces;
+using Repository.Interfaces;
 
 namespace ApiSynchro.Controllers
 {
-    /// <summary>
-    /// Gestiona el ciclo de vida de usuarios, autenticación por sesión y actualización de perfil.
-    /// </summary>
+    /// <sumary>
+    /// Controlador para los usuarios
+    /// </sumary>
+
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("api/v1/usuarios")]
-    public class UsuariosController : ControllerBase
+
+    public class UsuarioController : ControllerBase
     {
-        private readonly IRepository _repository;
-        private readonly ILogger<UsuariosController> _logger;
-
+        private readonly ILogger<UsuarioController> _logger;
+        private readonly IUsuarioQueries _usuarioQueries;
+        private readonly IUsuarioRepository _usuarioRepository;
+        
         /// <summary>
-        /// Inicializa una nueva instancia del controlador de usuarios.
+        /// UsuarioController
         /// </summary>
-        public UsuariosController(IRepository repository, ILogger<UsuariosController> logger)
+        /// <param name="logger"></param>
+        /// <param name="usuarioQueries"></param>
+        /// <param name="usuarioRepository"></param>
+        public UsuarioController(
+            ILogger<UsuarioController> logger,
+            IUsuarioQueries usuarioQueries,
+            IUsuarioRepository usuarioRepository)
         {
-            _repository = repository;
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _usuarioQueries = usuarioQueries ?? throw new ArgumentNullException(nameof(usuarioQueries));
+            _usuarioRepository = usuarioRepository ?? throw new ArgumentNullException(nameof(usuarioRepository));
         }
-
+        
         /// <summary>
-        /// Obtiene todos los usuarios registrados.
+        /// Lista todos los usuarios
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> ObtenerTodos()
+        [ProducesResponseType(typeof(IEnumerable<Usuario>), 200)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> ListarUsuarios()
         {
-            return Ok(await _repository.ObtenerUsuariosAsync());
+            _logger.LogInformation("Iniciando listado de todos los usuarios");
+            var rs = await _usuarioQueries.GetAll();
+            return Ok(rs);
         }
 
         /// <summary>
-        /// Obtiene un usuario por su identificador.
+        /// Busca un usuario por id y nombre
         /// </summary>
+        /// <param name="id">Id del usuario</param>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> ObtenerPorId(int id)
+        [ProducesResponseType(typeof(Usuario), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> UsuarioId(int id)
         {
-            var usuario = await _repository.ObtenerUsuarioPorIdAsync(id);
-            return usuario is null ? NotFound() : Ok(usuario);
+            try
+            {
+                var us = await _usuarioQueries.GetById(id);
+                if (us == null)
+                    return NotFound();
+
+                return Ok(us);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Texto cristian del error");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         /// <summary>
-        /// Registra un nuevo usuario en el sistema.
+        /// Crea un nuevo usuario
         /// </summary>
-        [HttpPost("registro")]
-        public async Task<ActionResult<Usuario>> Registrar([FromBody] Usuario usuario)
+        [HttpPost]
+        [ProducesResponseType(typeof(Usuario), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> CrearUsuario([FromBody] Usuario usuario)
         {
-            var existente = await _repository.ObtenerUsuarioPorEmailAsync(usuario.Email);
-            if (existente is not null)
+            try
             {
-                return BadRequest(new { mensaje = "El email ya está registrado." });
+                var existente = await _usuarioQueries.GetByEmail(usuario.Email);
+                if (existente != null)
+                    return BadRequest(new { mensaje = "El email ya existe" });
+
+                var creado = await _usuarioRepository.Add(usuario);
+                return CreatedAtAction(nameof(UsuarioId), new { id = creado.IdUsuario }, creado);
             }
-
-            var id = await _repository.RegistrarUsuarioAsync(usuario);
-            usuario.IdUsuario = id;
-            usuario.Contrasena = string.Empty;
-
-            _logger.LogInformation("Usuario registrado: {Email}", usuario.Email);
-            var creado = await _repository.ObtenerUsuarioPorIdAsync(id);
-            if (creado is not null)
+            catch (Exception ex)
             {
-                creado.Contrasena = string.Empty;
+                _logger.LogError(ex, "Error creando usuario");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            return CreatedAtAction(nameof(ObtenerPorId), new { id }, creado ?? usuario);
         }
 
         /// <summary>
-        /// Inicia sesión validando credenciales y creando un token de sesión persistido.
-        /// </summary>
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Dictionary<string, string> credenciales)
-        {
-            if (!credenciales.TryGetValue("email", out var email) || string.IsNullOrWhiteSpace(email) ||
-                !credenciales.TryGetValue("contrasena", out var contrasena) || string.IsNullOrWhiteSpace(contrasena))
-            {
-                return BadRequest(new { mensaje = "Email y contraseña son requeridos." });
-            }
-
-            var registrado = await _repository.ObtenerUsuarioPorEmailAsync(email);
-            if (registrado is null)
-            {
-                return Unauthorized(new { mensaje = "Credenciales inválidas." });
-            }
-
-            var hashIngresado = _repository.CalcularHash(contrasena);
-            if (!string.Equals(registrado.Contrasena, hashIngresado, StringComparison.OrdinalIgnoreCase))
-            {
-                return Unauthorized(new { mensaje = "Credenciales inválidas." });
-            }
-
-            var sesion = new Sesion
-            {
-                IdUsuario = registrado.IdUsuario,
-                Token = Guid.NewGuid().ToString("N"),
-                ExpiraEn = DateTime.Now.AddDays(7),
-                CreadoEn = DateTime.Now
-            };
-
-            sesion.IdSesion = await _repository.CrearSesionAsync(sesion);
-
-            Response.Cookies.Append("synchro_session", sesion.Token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
-                Expires = sesion.ExpiraEn
-            });
-
-            _logger.LogInformation("Login exitoso para usuario: {Email}", registrado.Email);
-            registrado.Contrasena = string.Empty;
-
-            return Ok(new
-            {
-                token = sesion.Token,
-                expiraEn = sesion.ExpiraEn,
-                usuario = registrado
-            });
-        }
-
-        /// <summary>
-        /// Cierra la sesión activa eliminando el token enviado por cabecera o cookie.
-        /// </summary>
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout([FromHeader(Name = "Authorization")] string? authorization)
-        {
-            var token = authorization;
-
-            if (string.IsNullOrWhiteSpace(token) && Request.Cookies.TryGetValue("synchro_session", out var cookieToken))
-            {
-                token = cookieToken;
-            }
-
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return BadRequest(new { mensaje = "Token requerido." });
-            }
-
-            if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                token = token[7..].Trim();
-            }
-
-            var eliminado = await _repository.EliminarSesionPorTokenAsync(token);
-            Response.Cookies.Delete("synchro_session");
-
-            return eliminado ? Ok(new { mensaje = "Sesión cerrada." }) : NotFound(new { mensaje = "Sesión no encontrada." });
-        }
-
-        /// <summary>
-        /// Actualiza los datos de un usuario existente.
+        /// Actualiza un usuario existente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Actualizar(int id, [FromBody] Usuario usuario)
+        [ProducesResponseType(typeof(Usuario), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> ActualizarUsuario(int id, [FromBody] Usuario usuario)
         {
-            var actual = await _repository.ObtenerUsuarioPorIdAsync(id);
-            if (actual is null)
+            try
             {
-                return NotFound();
-            }
+                var existente = await _usuarioQueries.GetById(id);
+                if (existente == null)
+                    return NotFound();
 
-            usuario.IdUsuario = id;
-            var actualizarPassword = !string.IsNullOrWhiteSpace(usuario.Contrasena);
-            if (!actualizarPassword)
+                usuario.IdUsuario = id;
+                var actualizado = await _usuarioRepository.Update(usuario);
+                return Ok(actualizado);
+            }
+            catch (Exception ex)
             {
-                usuario.Contrasena = actual.Contrasena;
+                _logger.LogError(ex, "Error actualizando usuario");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            var actualizado = await _repository.ActualizarUsuarioAsync(usuario, actualizarPassword);
-            return actualizado ? NoContent() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         /// <summary>
-        /// Actualiza el vector de embedding del perfil de un usuario.
-        /// </summary>
-        [HttpPut("{id}/embedding")]
-        public async Task<IActionResult> ActualizarEmbedding(int id, [FromBody] Dictionary<string, string> body)
-        {
-            if (!body.TryGetValue("embedding", out var embedding) || string.IsNullOrWhiteSpace(embedding))
-            {
-                return BadRequest(new { mensaje = "Embedding es requerido." });
-            }
-
-            var actualizado = await _repository.ActualizarEmbeddingUsuarioAsync(id, embedding);
-            return actualizado ? Ok(new { mensaje = "Embedding actualizado." }) : NotFound();
-        }
-
-        /// <summary>
-        /// Elimina un usuario del sistema.
+        /// Elimina un usuario por id
         /// </summary>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Eliminar(int id)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> EliminarUsuario(int id)
         {
-            var eliminado = await _repository.EliminarUsuarioAsync(id);
-            return eliminado ? NoContent() : NotFound();
-        }
-
-        /// <summary>
-        /// Genera una biografía sugerida para el usuario y la persiste en su perfil.
-        /// </summary>
-        [HttpPost("{id}/generar-bio")]
-        public async Task<ActionResult> GenerarBio(int id)
-        {
-            var usuario = await _repository.ObtenerUsuarioPorIdAsync(id);
-            if (usuario is null)
+            try
             {
-                return NotFound(new { mensaje = "Usuario no encontrado" });
+                var existente = await _usuarioQueries.GetById(id);
+                if (existente == null)
+                    return NotFound();
+
+                await _usuarioRepository.Delete(id);
+                return NoContent();
             }
-
-            usuario.BioAI = string.IsNullOrWhiteSpace(usuario.Ciudad)
-                ? $"{usuario.Nombre} está abierto a conocer nuevas personas y compartir buenos momentos."
-                : $"{usuario.Nombre} vive en {usuario.Ciudad} y está abierto a conocer nuevas personas con intereses afines.";
-
-            var actualizado = await _repository.ActualizarUsuarioAsync(usuario, actualizarPassword: false);
-            if (!actualizado)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = "No se pudo actualizar la bio." });
+                _logger.LogError(ex, "Error eliminando usuario");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            _logger.LogInformation("Bio generada para usuario: {IdUsuario}", id);
-            return Ok(new { bioAI = usuario.BioAI });
         }
     }
 }
