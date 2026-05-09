@@ -1,143 +1,153 @@
 # Synchro BackEnd
 
-API ASP.NET Core (.NET 10) para consumir una base de datos existente con Dapper.
+Backend de Synchro construido con ASP.NET Core y Dapper.
 
-## Estado actual
+## Estado actual del proyecto (mayo 2026)
 
-- API REST funcional
-- Swagger habilitado en desarrollo en la raíz
-- SignalR disponible en `/chatHub`
-- La aplicación escucha en `http://localhost:5000`
-- Acceso a base de datos centralizado en `Repository.cs`
-- Consultas SQL centralizadas en `Query.cs`
-- Modelos de dominio en `Models.cs`
-- Sin DTOs
-- Sin capa de Services
+El repositorio mantiene dos líneas de trabajo:
 
-## Tecnologías
+1. Arquitectura activa (la que hoy ejecuta la API)
+   - Solución: `ApiSynchro.slnx`
+   - Proyectos incluidos: `ApiSynchro`, `Models`, `Query`, `Repository`
+   - API REST operativa con controladores CRUD por entidad.
+   - OpenAPI/Swagger habilitado en entorno Development.
+   - Acceso a datos con Dapper y SQL Server.
 
-- .NET 10
-- ASP.NET Core Web API
-- Dapper
-- Microsoft.Data.SqlClient
-- Swashbuckle.AspNetCore
-- SignalR
+2. Arquitectura por capas en transición
+   - Carpetas presentes: `Synchro.API`, `Synchro.Application`, `Synchro.Domain`, `Synchro.Infrastructure`.
+   - Contienen código base (DTOs, entidades, servicios y repositorios), pero actualmente no tienen `.csproj` ni están referenciadas en la solución principal.
+   - Se consideran una migración en progreso y no forman parte del flujo de ejecución actual.
 
-## Estructura principal
+## Arquitectura activa
+
+### Proyectos y responsabilidades
+
+- `ApiSynchro` (net10.0)
+  - Punto de entrada (`Program.cs`)
+  - Configuración de DI, CORS, Swagger y Controllers
+  - Expone endpoints HTTP
+
+- `Models` (netstandard2.1)
+  - Entidades del dominio persistido
+
+- `Query` (netstandard2.1)
+  - Interfaces e implementaciones de lectura/consulta con Dapper
+
+- `Repository` (netstandard2.1)
+  - Interfaces e implementaciones de acceso y persistencia con Dapper
+
+### Estructura actual (resumen)
 
 ```text
-ApiSynchro/
-├─ AppHost.cs
-├─ Controllers/
-├─ Hubs/
-├─ Models.cs
-├─ Query.cs
-├─ Repository.cs
-└─ appsettings.json
+Synchro-BackEnd/
+├─ ApiSynchro.slnx
+├─ README.md
+├─ ApiSynchro/
+│  ├─ ApiSynchro.csproj
+│  ├─ Program.cs
+│  ├─ appsettings.json
+│  ├─ appsettings.Development.json
+│  ├─ Controllers/
+│  │  ├─ UsuariosController.cs
+│  │  ├─ IntencionBusquedaController.cs
+│  │  ├─ MatchController.cs
+│  │  ├─ MensajeController.cs
+│  │  ├─ PreguntaEncuestaController.cs
+│  │  ├─ RespuestaEncuestaController.cs
+│  │  └─ SesionController.cs
+│  └─ Hubs/ (vacío por ahora)
+├─ Models/
+│  ├─ Models.csproj
+│  ├─ Usuario.cs
+│  ├─ IntencionBusqueda.cs
+│  ├─ Match.cs
+│  ├─ Mensaje.cs
+│  ├─ PreguntaEncuesta.cs
+│  ├─ RespuestaEncuesta.cs
+│  └─ Sesion.cs
+├─ Query/
+│  ├─ Query.csproj
+│  ├─ Interfaces/
+│  └─ Implementations/
+├─ Repository/
+│  ├─ Repository.csproj
+│  ├─ Interfaces/
+│  └─ Implements/
+├─ Synchro.API/
+├─ Synchro.Application/
+├─ Synchro.Domain/
+└─ Synchro.Infrastructure/
 ```
 
 ## Configuración
 
-### Cadena de conexión
+### Requisitos
+
+- SDK de .NET 10
+- SQL Server accesible desde la cadena de conexión
+
+### Cadena de conexión (arquitectura activa)
 
 Editar `ApiSynchro/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=SynchroDB;User Id=sa;Password=YourStrong@Password2026;TrustServerCertificate=True;"
+    "sql": "Server=localhost,1433;Database=SynchroDB;User Id=sa;Password=TuPasswordSeguro123!;TrustServerCertificate=True;"
   }
 }
 ```
 
-### Ejecutar el proyecto
+Nota: `Program.cs` de `ApiSynchro` usa la clave `sql`.
+
+### Ejecución local
 
 ```bash
 cd ApiSynchro
 dotnet run
 ```
 
-## Swagger
+Perfiles configurados en `launchSettings.json`:
 
-En desarrollo, la documentación se abre en la raíz de la aplicación:
+- HTTP: `http://localhost:5124`
+- HTTPS: `https://localhost:7274` (y también HTTP 5124)
 
-- `http://localhost:5000`
+## Endpoints actuales
 
-## Endpoints disponibles
+La API no está versionada por ruta (`/api/v1` no aplica en la implementación actual).
 
-### Usuarios
+Rutas base por controlador:
 
-- `GET /api/v1/usuarios`
-- `GET /api/v1/usuarios/{id}`
-- `POST /api/v1/usuarios/registro`
-- `POST /api/v1/usuarios/login`
-- `POST /api/v1/usuarios/logout`
-- `PUT /api/v1/usuarios/{id}`
-- `DELETE /api/v1/usuarios/{id}`
-- `POST /api/v1/usuarios/{id}/generar-bio`
+- `api/usuario`
+- `api/intencionbusqueda`
+- `api/match`
+- `api/mensaje`
+- `api/preguntaencuesta`
+- `api/respuestaencuesta`
+- `api/sesion`
 
-#### Login
+Cada controlador expone operaciones CRUD base:
 
-- Entrada: JSON con `email` y `contrasena`
-- Respuesta: JSON con `token`, `expiraEn` y `usuario`
-- El token de cierre de sesión se envía en el encabezado `Authorization`
-- Formato aceptado: `Bearer {token}` o token directo
+- `GET /api/{controller}`
+- `GET /api/{controller}/{id}`
+- `POST /api/{controller}`
+- `PUT /api/{controller}/{id}`
+- `DELETE /api/{controller}/{id}`
 
-### Matches
+## Swagger y documentación
 
-- `GET /api/v1/matches`
-- `GET /api/v1/matches/usuario/{idUsuario}`
-- `GET /api/v1/matches/{id}`
-- `POST /api/v1/matches`
-- `PUT /api/v1/matches/{id}/estado?estado=true|false`
-- `DELETE /api/v1/matches/{id}`
+- En Development, Swagger UI se habilita con la configuración por defecto de ASP.NET Core (ruta `/swagger`).
+- Se incluyen comentarios XML (`api.xml`) para documentar endpoints.
 
-### Mensajes
+## Estado de componentes técnicos
 
-- `GET /api/v1/mensajes/match/{idMatch}`
-- `GET /api/v1/mensajes/conversacion/{idRemitente}/{idDestinatario}`
-- `GET /api/v1/mensajes/{id}`
-- `GET /api/v1/mensajes/no-leidos/{idUsuario}`
-- `POST /api/v1/mensajes`
-- `PUT /api/v1/mensajes/{id}/marcar-leido`
-- `DELETE /api/v1/mensajes/{id}`
+- DI configurada para Queries y Repositories por entidad.
+- CORS habilitado con política por defecto para `http://127.0.0.1:5500`.
+- SignalR registrado (`AddSignalR()`), pero actualmente no hay Hub implementado ni mapeado en rutas.
 
-### Encuestas
+## Pendientes técnicos identificados
 
-#### Preguntas
-
-- `GET /api/v1/encuestas`
-- `GET /api/v1/encuestas/{id}`
-- `POST /api/v1/encuestas`
-- `PUT /api/v1/encuestas/{id}`
-- `DELETE /api/v1/encuestas/{id}`
-
-#### Respuestas
-
-- `GET /api/v1/encuestas/respuestas`
-- `GET /api/v1/encuestas/respuestas/{id}`
-- `GET /api/v1/encuestas/usuario/{idUsuario}/respuestas`
-- `POST /api/v1/encuestas/respuestas`
-- `POST /api/v1/encuestas/respuestas/batch?idUsuario={idUsuario}`
-- `PUT /api/v1/encuestas/respuestas/{id}`
-- `DELETE /api/v1/encuestas/respuestas/{id}`
-
-### Intenciones
-
-- `GET /api/v1/intenciones`
-- `GET /api/v1/intenciones/{id}`
-- `POST /api/v1/intenciones`
-- `PUT /api/v1/intenciones/{id}`
-- `DELETE /api/v1/intenciones/{id}`
-
-### SignalR
-
-- `/chatHub`
-
-## Notas
-
-- La API trabaja directamente con las entidades de `Models.cs`.
-- `Repository.cs` centraliza el acceso a la base de datos, autenticación por sesión y consultas SQL.
-- `Query.cs` contiene las sentencias SQL utilizadas por la API.
-- El inicio de la aplicación está en `AppHost.cs`.
-- El login crea una sesión con expiración de 7 días y devuelve un token.
+- Integrar o formalizar la arquitectura por capas (`Synchro.*`) en proyectos compilables.
+- Definir estrategia de versionado de API (si se requiere `v1`).
+- Unificar criterios de cadenas de conexión entre arquitectura activa y estructura en transición.
+- Ajustar CORS según el entorno real del frontend (por ejemplo, Vite en `:5173` si corresponde).
