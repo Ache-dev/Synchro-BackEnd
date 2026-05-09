@@ -1,0 +1,349 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApiSynchro</name>
+    </assembly>
+    <members>
+        <member name="T:ApiSynchro.Controllers.IntencionBusquedaController">
+            <summary>
+            Controlador para las intenciones de búsqueda
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.IntencionBusquedaController},Query.Interfaces.IIntencionBusquedaQueries,Repository.Interfaces.IIntencionBusquedaRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.IntencionBusquedaController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de intenciones de búsqueda</param>
+            <param name="repository">Servicio de persistencia de intenciones de búsqueda</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.Listar">
+            <summary>
+            Lista todas las intenciones de búsqueda
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.PorId(System.Int32)">
+            <summary>
+            Obtiene una intención de búsqueda por su identificador
+            </summary>
+            <param name="id">Id de la intención de búsqueda</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.Crear(Model.IntencionBusqueda)">
+            <summary>
+            Crea una nueva intención de búsqueda
+            </summary>
+            <param name="entidad">Datos de la intención de búsqueda</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.Actualizar(System.Int32,Model.IntencionBusqueda)">
+            <summary>
+            Actualiza una intención de búsqueda existente
+            </summary>
+            <param name="id">Id de la intención de búsqueda</param>
+            <param name="entidad">Nuevos datos de la intención de búsqueda</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.IntencionBusquedaController.Eliminar(System.Int32)">
+            <summary>
+            Elimina una intención de búsqueda por su identificador
+            </summary>
+            <param name="id">Id de la intención de búsqueda</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.MatchController">
+            <summary>
+            Controlador para los matches
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.MatchController},Query.Interfaces.IMatchQueries,Repository.Interfaces.IMatchRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.MatchController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de matches</param>
+            <param name="repository">Servicio de persistencia de matches</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.Listar">
+            <summary>
+            Lista todos los matches
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.PorId(System.Int32)">
+            <summary>
+            Obtiene un match por su identificador
+            </summary>
+            <param name="id">Id del match</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.Crear(Model.Match)">
+            <summary>
+            Crea un nuevo match
+            </summary>
+            <param name="entidad">Datos del match</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.Actualizar(System.Int32,Model.Match)">
+            <summary>
+            Actualiza un match existente
+            </summary>
+            <param name="id">Id del match</param>
+            <param name="entidad">Nuevos datos del match</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MatchController.Eliminar(System.Int32)">
+            <summary>
+            Elimina un match por su identificador
+            </summary>
+            <param name="id">Id del match</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.MensajeController">
+            <summary>
+            Controlador para los mensajes
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.MensajeController},Query.Interfaces.IMensajeQueries,Repository.Interfaces.IMensajeRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.MensajeController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de mensajes</param>
+            <param name="repository">Servicio de persistencia de mensajes</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.Listar">
+            <summary>
+            Lista todos los mensajes
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.PorId(System.Int32)">
+            <summary>
+            Obtiene un mensaje por su identificador
+            </summary>
+            <param name="id">Id del mensaje</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.Crear(Model.Mensaje)">
+            <summary>
+            Crea un nuevo mensaje
+            </summary>
+            <param name="entidad">Datos del mensaje</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.Actualizar(System.Int32,Model.Mensaje)">
+            <summary>
+            Actualiza un mensaje existente
+            </summary>
+            <param name="id">Id del mensaje</param>
+            <param name="entidad">Nuevos datos del mensaje</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.MensajeController.Eliminar(System.Int32)">
+            <summary>
+            Elimina un mensaje por su identificador
+            </summary>
+            <param name="id">Id del mensaje</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.PreguntaEncuestaController">
+            <summary>
+            Controlador para las preguntas de encuesta
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.PreguntaEncuestaController},Query.Interfaces.IPreguntaEncuestaQueries,Repository.Interfaces.IPreguntaEncuestaRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.PreguntaEncuestaController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de preguntas de encuesta</param>
+            <param name="repository">Servicio de persistencia de preguntas de encuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.Listar">
+            <summary>
+            Lista todas las preguntas de encuesta
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.PorId(System.Int32)">
+            <summary>
+            Obtiene una pregunta de encuesta por su identificador
+            </summary>
+            <param name="id">Id de la pregunta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.Crear(Model.PreguntaEncuesta)">
+            <summary>
+            Crea una nueva pregunta de encuesta
+            </summary>
+            <param name="entidad">Datos de la pregunta de encuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.Actualizar(System.Int32,Model.PreguntaEncuesta)">
+            <summary>
+            Actualiza una pregunta de encuesta existente
+            </summary>
+            <param name="id">Id de la pregunta</param>
+            <param name="entidad">Nuevos datos de la pregunta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.PreguntaEncuestaController.Eliminar(System.Int32)">
+            <summary>
+            Elimina una pregunta de encuesta por su identificador
+            </summary>
+            <param name="id">Id de la pregunta</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.RespuestaEncuestaController">
+            <summary>
+            Controlador para las respuestas de encuesta
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.RespuestaEncuestaController},Query.Interfaces.IRespuestaEncuestaQueries,Repository.Interfaces.IRespuestaEncuestaRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.RespuestaEncuestaController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de respuestas de encuesta</param>
+            <param name="repository">Servicio de persistencia de respuestas de encuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.Listar">
+            <summary>
+            Lista todas las respuestas de encuesta
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.PorId(System.Int32)">
+            <summary>
+            Obtiene una respuesta de encuesta por su identificador
+            </summary>
+            <param name="id">Id de la respuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.Crear(Model.RespuestaEncuesta)">
+            <summary>
+            Crea una nueva respuesta de encuesta
+            </summary>
+            <param name="entidad">Datos de la respuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.Actualizar(System.Int32,Model.RespuestaEncuesta)">
+            <summary>
+            Actualiza una respuesta de encuesta existente
+            </summary>
+            <param name="id">Id de la respuesta</param>
+            <param name="entidad">Nuevos datos de la respuesta</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.RespuestaEncuestaController.Eliminar(System.Int32)">
+            <summary>
+            Elimina una respuesta de encuesta por su identificador
+            </summary>
+            <param name="id">Id de la respuesta</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.SesionController">
+            <summary>
+            Controlador para las sesiones de usuario
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.SesionController},Query.Interfaces.ISesionQueries,Repository.Interfaces.ISesionRepository)">
+            <summary>
+            Inicializa una nueva instancia de <see cref="T:ApiSynchro.Controllers.SesionController"/>
+            </summary>
+            <param name="logger">Servicio de logging</param>
+            <param name="queries">Servicio de consultas de sesiones</param>
+            <param name="repository">Servicio de persistencia de sesiones</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.Listar">
+            <summary>
+            Lista todas las sesiones
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.PorId(System.Int32)">
+            <summary>
+            Obtiene una sesión por su identificador
+            </summary>
+            <param name="id">Id de la sesión</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.Crear(Model.Sesion)">
+            <summary>
+            Crea una nueva sesión
+            </summary>
+            <param name="entidad">Datos de la sesión</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.Actualizar(System.Int32,Model.Sesion)">
+            <summary>
+            Actualiza una sesión existente
+            </summary>
+            <param name="id">Id de la sesión</param>
+            <param name="entidad">Nuevos datos de la sesión</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.SesionController.Eliminar(System.Int32)">
+            <summary>
+            Elimina una sesión por su identificador
+            </summary>
+            <param name="id">Id de la sesión</param>
+        </member>
+        <member name="T:ApiSynchro.Controllers.UsuarioController">
+            <sumary>
+            Controlador para los usuarios
+            </sumary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.#ctor(Microsoft.Extensions.Logging.ILogger{ApiSynchro.Controllers.UsuarioController},Query.Interfaces.IUsuarioQueries,Repository.Interfaces.IUsuarioRepository)">
+            <summary>
+            UsuarioController
+            </summary>
+            <param name="logger"></param>
+            <param name="usuarioQueries"></param>
+            <param name="usuarioRepository"></param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.ListarUsuarios">
+            <summary>
+            Lista todos los usuarios
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.UsuarioId(System.Int32)">
+            <summary>
+            Busca un usuario por id y nombre
+            </summary>
+            <param name="id">Id del usuario</param>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.CrearUsuario(Model.Usuario)">
+            <summary>
+            Crea un nuevo usuario
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.ActualizarUsuario(System.Int32,Model.Usuario)">
+            <summary>
+            Actualiza un usuario existente
+            </summary>
+        </member>
+        <member name="M:ApiSynchro.Controllers.UsuarioController.EliminarUsuario(System.Int32)">
+            <summary>
+            Elimina un usuario por id
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type)">
+            <summary>
+            Generates a documentation comment ID for a type.
+            Example: T:Namespace.Outer+Inner`1 becomes T:Namespace.Outer.Inner`1
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.PropertyInfo)">
+            <summary>
+            Generates a documentation comment ID for a property.
+            Example: P:Namespace.ContainingType.PropertyName or for an indexer P:Namespace.ContainingType.Item(System.Int32)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type,System.String)">
+            <summary>
+            Generates a documentation comment ID for a property given its container type and property name.
+            Example: P:Namespace.ContainingType.PropertyName
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.MethodInfo)">
+            <summary>
+            Generates a documentation comment ID for a method (or constructor).
+            For example:
+              M:Namespace.ContainingType.MethodName(ParamType1,ParamType2)~ReturnType
+              M:Namespace.ContainingType.#ctor(ParamType)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.GetTypeDocId(System.Type,System.Boolean,System.Boolean)">
+            <summary>
+            Generates a documentation ID string for a type.
+            This method handles nested types (replacing '+' with '.'),
+            generic types, arrays, pointers, by-ref types, and generic parameters.
+            The <paramref name="includeGenericArguments"/> flag controls whether
+            constructed generic type arguments are emitted, while <paramref name="omitGenericArity"/>
+            controls whether the generic arity marker (e.g. "`1") is appended.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.NormalizeDocId(System.String)">
+            <summary>
+            Normalizes a documentation comment ID to match the compiler-style format.
+            Strips the return type suffix for ordinary methods but retains it for conversion operators.
+            </summary>
+            <param name="docId">The documentation comment ID to normalize.</param>
+            <returns>The normalized documentation comment ID.</returns>
+        </member>
+    </members>
+</doc>
